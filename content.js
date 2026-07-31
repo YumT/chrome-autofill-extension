@@ -107,6 +107,42 @@
     true
   );
 
+  // ---------- サンプルデータ自動入力 ----------
+  // ポップアップからの指示で、空のフィールドにダミーデータを入力する
+  function fillSamples() {
+    if (!window.UrlAutofillSamples) return { filled: 0 };
+    let filled = 0;
+    document
+      .querySelectorAll("input, textarea, select")
+      .forEach((el) => {
+        if (!isTarget(el)) return;
+        // 入力済みのフィールドは上書きしない
+        if (el.type === "checkbox" || el.type === "radio") {
+          if (el.checked) return;
+        } else if (el.value && el.value.trim() !== "") {
+          return;
+        }
+        const s = window.UrlAutofillSamples.generate(el);
+        if (!s) return;
+        if (s.kind === "check") {
+          el.checked = s.value;
+          el.dispatchEvent(new Event("change", { bubbles: true }));
+        } else {
+          setNativeValue(el, String(s.value));
+        }
+        filled++;
+      });
+    console.log(`[URLオートフィル] サンプルデータを ${filled} 件入力しました`);
+    return { filled };
+  }
+
+  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (msg && msg.type === "fillSamples") {
+      sendResponse(fillSamples());
+    }
+    return false;
+  });
+
   // 自動再入力: 初回 + SPAの遅延描画に備えて複数回リトライ
   fillAll();
   setTimeout(fillAll, 1000);

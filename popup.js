@@ -50,4 +50,27 @@
   document.getElementById("btnManage").addEventListener("click", () => {
     chrome.runtime.openOptionsPage();
   });
+
+  // サンプルデータ自動入力
+  const btnSample = document.getElementById("btnSample");
+  const sampleResult = document.getElementById("sampleResult");
+  btnSample.addEventListener("click", async () => {
+    try {
+      const [tab] = await chrome.tabs.query({
+        active: true,
+        currentWindow: true
+      });
+      if (!tab || !tab.id) throw new Error("no tab");
+      const res = await chrome.tabs.sendMessage(tab.id, {
+        type: "fillSamples"
+      });
+      sampleResult.textContent =
+        res && res.filled > 0
+          ? `${res.filled} 件のフィールドに入力しました`
+          : "入力対象の空フィールドがありませんでした";
+    } catch (e) {
+      sampleResult.textContent =
+        "このページでは実行できません（chrome:// 等は不可)";
+    }
+  });
 })();

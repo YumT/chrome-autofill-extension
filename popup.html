@@ -41,6 +41,9 @@
     .btn-clear:hover { background: #dcdcdc; }
     .btn-manage { background: #1a73e8; color: #fff; }
     .btn-manage:hover { background: #1765cc; }
+    .btn-sample { background: #0b8043; color: #fff; }
+    .btn-sample:hover { background: #0a6e39; }
+    .result { font-size: 12px; color: #0b8043; margin-top: 6px; min-height: 14px; }
     label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
     .note { font-size: 11px; color: #999; margin-top: 10px; }
   </style>
@@ -58,8 +61,10 @@
     <span>このページの保存済みフィールド:</span>
     <span class="count" id="fieldCount">0</span>
   </div>
+  <button class="btn-sample" id="btnSample">空のフィールドにサンプルデータを自動入力</button>
   <button class="btn-clear" id="btnClear">このページの保存データを削除</button>
   <button class="btn-manage" id="btnManage">保存済みサイトの管理（一覧・編集・エクスポート)</button>
+  <div class="result" id="sampleResult"></div>
   <p class="note">入力内容はこのブラウザ内（chrome.storage.local）にのみ保存されます。</p>
   <script src="popup.js"></script>
 </body>
