@@ -46,4 +46,8 @@
     countEl.textContent = "0";
     btnClear.disabled = true;
   });
+
+  document.getElementById("btnManage").addEventListener("click", () => {
+    chrome.runtime.openOptionsPage();
+  });
 })();

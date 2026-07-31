@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>URLオートフィル - 保存データ管理</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      max-width: 760px;
+      margin: 24px auto;
+      padding: 0 16px 40px;
+      font-family: "Segoe UI", "Meiryo", sans-serif;
+      font-size: 13px;
+      color: #222;
+      background: #fafafa;
+    }
+    h1 { font-size: 18px; margin: 0 0 4px; }
+    .sub { color: #777; margin-bottom: 20px; }
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+    .toolbar input[type="search"] {
+      flex: 1;
+      padding: 7px 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    button {
+      padding: 7px 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      background: #1a73e8;
+      color: #fff;
+      white-space: nowrap;
+    }
+    button:hover { background: #1765cc; }
+    button.sub-btn { background: #e8e8e8; color: #333; }
+    button.sub-btn:hover { background: #dcdcdc; }
+    button.danger { background: #fff; color: #d93025; border: 1px solid #d93025; }
+    button.danger:hover { background: #fdecea; }
+    button:disabled { opacity: 0.5; cursor: default; }
+    .site {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .site-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .site-header:hover { background: #f5f8ff; }
+    .site-header .arrow { color: #999; width: 14px; }
+    .site-url { flex: 1; font-weight: bold; word-break: break-all; }
+    .site-count {
+      background: #e8f0fe;
+      color: #1a73e8;
+      border-radius: 10px;
+      padding: 1px 9px;
+      font-size: 12px;
+    }
+    .site-body { border-top: 1px solid #eee; padding: 10px 14px; display: none; }
+    .site.open .site-body { display: block; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+    td, th { padding: 5px 6px; text-align: left; font-size: 12px; }
+    th { color: #888; font-weight: normal; border-bottom: 1px solid #eee; }
+    td.field-key { color: #555; word-break: break-all; width: 38%; }
+    td input.field-value {
+      width: 100%;
+      padding: 5px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    td input.field-value.dirty { border-color: #1a73e8; background: #f5f8ff; }
+    .row-del {
+      background: none;
+      border: none;
+      color: #d93025;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 2px 6px;
+    }
+    .site-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .empty { color: #999; text-align: center; padding: 40px 0; }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 12px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+    .global-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>URLオートフィル — 保存データ管理</h1>
+  <p class="sub">保存済みサイトの一覧・個別編集・エクスポートができます。</p>
+
+  <div class="global-row">
+    <label><input type="checkbox" id="toggleEnabled" /> 自動保存・再入力を有効化</label>
+  </div>
+
+  <div class="toolbar">
+    <input type="search" id="searchBox" placeholder="URLで絞り込み…" />
+    <button id="btnExport">JSONエクスポート</button>
+    <button class="danger" id="btnDeleteAll">全データ削除</button>
+  </div>
+
+  <div id="siteList"></div>
+  <div class="toast" id="toast"></div>
+
+  <script src="options.js"></script>
+</body>
+</html>
