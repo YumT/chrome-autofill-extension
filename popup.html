@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    body {
+      width: 280px;
+      margin: 0;
+      padding: 14px;
+      font-family: "Segoe UI", "Meiryo", sans-serif;
+      font-size: 13px;
+      color: #222;
+    }
+    h1 { font-size: 14px; margin: 0 0 10px; }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .url {
+      font-size: 11px;
+      color: #666;
+      word-break: break-all;
+      background: #f4f4f4;
+      border-radius: 4px;
+      padding: 6px 8px;
+      margin-bottom: 10px;
+    }
+    .count { font-weight: bold; color: #1a73e8; }
+    button {
+      width: 100%;
+      padding: 7px 0;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      margin-top: 6px;
+    }
+    .btn-clear { background: #e8e8e8; color: #333; }
+    .btn-clear:hover { background: #dcdcdc; }
+    label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .note { font-size: 11px; color: #999; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>URLオートフィル</h1>
+  <div class="row">
+    <label>
+      <input type="checkbox" id="toggleEnabled" />
+      自動保存・再入力を有効化
+    </label>
+  </div>
+  <div class="url" id="pageUrl">-</div>
+  <div class="row">
+    <span>このページの保存済みフィールド:</span>
+    <span class="count" id="fieldCount">0</span>
+  </div>
+  <button class="btn-clear" id="btnClear">このページの保存データを削除</button>
+  <p class="note">入力内容はこのブラウザ内（chrome.storage.local）にのみ保存されます。</p>
+  <script src="popup.js"></script>
+</body>
+</html>
