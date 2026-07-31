@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "URLオートフィル",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "ページのURLごとにフォーム入力内容を自動保存し、次回アクセス時に自動で再入力します。",
   "permissions": ["storage", "activeTab", "tabs"],
   "icons": {

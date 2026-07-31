@@ -14,14 +14,14 @@
 
   // ---------- 名前后データ ----------
   const NAMES = [
-    { sei: "山田", seiKana: "ヤマダ", mei: "太郎", meiKana: "タロウ", romaji: "taro.yamada" },
-    { sei: "佐藤", seiKana: "サトウ", mei: "花子", meiKana: "ハナコ", romaji: "hanako.sato" },
-    { sei: "鈴木", seiKana: "スズキ", mei: "一郎", meiKana: "イチロウ", romaji: "ichiro.suzuki" },
-    { sei: "田中", seiKana: "タナカ", mei: "美咲", meiKana: "ミサキ", romaji: "misaki.tanaka" },
-    { sei: "高橋", seiKana: "タカハシ", mei: "健", meiKana: "ケン", romaji: "ken.takahashi" },
-    { sei: "伊藤", seiKana: "イトウ", mei: "裕子", meiKana: "ユウコ", romaji: "yuko.ito" },
-    { sei: "中村", seiKana: "ナカムラ", mei: "翔", meiKana: "ショウ", romaji: "sho.nakamura" },
-    { sei: "小林", seiKana: "コバヤシ", mei: "愛", meiKana: "アイ", romaji: "ai.kobayashi" }
+    { sei: "山田", seiKana: "ヤマダ", seiHira: "やまだ", mei: "太郎", meiKana: "タロウ", meiHira: "たろう", romaji: "taro.yamada" },
+    { sei: "佐藤", seiKana: "サトウ", seiHira: "さとう", mei: "花子", meiKana: "ハナコ", meiHira: "はなこ", romaji: "hanako.sato" },
+    { sei: "鈴木", seiKana: "スズキ", seiHira: "すずき", mei: "一郎", meiKana: "イチロウ", meiHira: "いちろう", romaji: "ichiro.suzuki" },
+    { sei: "田中", seiKana: "タナカ", seiHira: "たなか", mei: "美咲", meiKana: "ミサキ", meiHira: "みさき", romaji: "misaki.tanaka" },
+    { sei: "高橋", seiKana: "タカハシ", seiHira: "たかはし", mei: "健", meiKana: "ケン", meiHira: "けん", romaji: "ken.takahashi" },
+    { sei: "伊藤", seiKana: "イトウ", seiHira: "いとう", mei: "裕子", meiKana: "ユウコ", meiHira: "ゆうこ", romaji: "yuko.ito" },
+    { sei: "中村", seiKana: "ナカムラ", seiHira: "なかむら", mei: "翔", meiKana: "ショウ", meiHira: "しょう", romaji: "sho.nakamura" },
+    { sei: "小林", seiKana: "コバヤシ", seiHira: "こばやし", mei: "愛", meiKana: "アイ", meiHira: "あい", romaji: "ai.kobayashi" }
   ];
   const person = pick(NAMES);
 
@@ -165,6 +165,131 @@
     }
   }
 
+  // ---------- Lv.3: バリデーション制約への適合 ----------
+  // maxlength / minlength / pattern / min / max / step を読み、
+  // 生成値がそのフィールドの制約を通るよう調整する。
+
+  // カタカナ → ひらがな
+  function toHiragana(s) {
+    return s.replace(/[ァ-ヶ]/g, (ch) =>
+      String.fromCharCode(ch.charCodeAt(0) - 0x60)
+    );
+  }
+
+  // pattern属性から望ましい値の形を推定して生成を試みる
+  function valueForPattern(pattern) {
+    // 数字のみ系: \d{7}, [0-9]{3,4}, 0[0-9]{9,10} など
+    // \d / [0-9] を除去した残りに英字・日本語・ハイフン等が無ければ数字パターンとみなす
+    const rest = pattern.replace(/\\d/g, "").replace(/\[0-9\]/g, "");
+    if (!/[^\s\^{}$()+*?,|0-9]/.test(rest) && /\\d|\[0-9\]/.test(pattern)) {
+      // 先頭の数字リテラル(例: 0[0-9]{9,10} の "0")はそのまま使う
+      const head = (pattern.match(/^\^?(\d+)/) || [null, ""])[1];
+      // 必要桁数を推定
+      let minLen = 0, maxLen = 0;
+      const re = /(?:\\d|\[0-9\]|\d)(?:\{(\d+)(?:,(\d*))?\})?/g;
+      let m;
+      while ((m = re.exec(pattern)) !== null) {
+        const q1 = m[1] !== undefined ? Number(m[1]) : 1;
+        const q2 =
+          m[2] !== undefined ? (m[2] === "" ? q1 + 3 : Number(m[2])) : q1;
+        minLen += q1;
+        maxLen += q2;
+      }
+      const target = Math.min(Math.max(minLen, 4), Math.min(maxLen, 15));
+      let digits = head;
+      while (digits.length < target) digits += String(randInt(0, 9));
+      return digits.slice(0, Math.max(target, head.length));
+    }
+    // カタカナのみ
+    if (/[ァヶ]|[ア-ン]|ｱ|ﾝ/.test(pattern)) {
+      return (person.seiKana + " " + person.meiKana).replace(/\s/g, "");
+    }
+    // ひらがなのみ
+    if (/[ぁん]/.test(pattern)) {
+      return toHiragana(person.seiKana + person.meiKana);
+    }
+    // 半角英数字
+    if (/\[a-zA-Z0-9\]|\[a-z0-9\]|\[A-Za-z0-9\]/.test(pattern)) {
+      const m = pattern.match(/\{(\d+)/);
+      const len = m ? Math.max(Number(m[1]), 8) : 12;
+      const base = (person.romaji.replace(/\W/g, "") + "12345678").slice(0, len);
+      return base;
+    }
+    return null;
+  }
+
+  function matchesPattern(el, value) {
+    const p = el.getAttribute && el.getAttribute("pattern");
+    if (!p) return true;
+    try {
+      return new RegExp(`^(?:${p})$`).test(value);
+    } catch {
+      return true; // 解釈不能なpatternは無視
+    }
+  }
+
+  // 生成値をフィールドの制約に合わせて調整
+  function adjust(el, value) {
+    let v = String(value);
+    const t = (el.type || "text").toLowerCase();
+
+    // --- number / range: min・max・step ---
+    if ((t === "number" || t === "range") && v !== "" && !isNaN(Number(v))) {
+      let num = Number(v);
+      const min = el.min !== "" ? Number(el.min) : null;
+      const max = el.max !== "" ? Number(el.max) : null;
+      if (min !== null && num < min) num = min;
+      if (max !== null && num > max) num = max;
+      const stepAttr = el.getAttribute && el.getAttribute("step");
+      if (stepAttr && stepAttr !== "any") {
+        const step = Number(stepAttr);
+        const base = min !== null ? min : 0;
+        if (step > 0) {
+          num = base + Math.round((num - base) / step) * step;
+          // 浮動小数誤差の丸め
+          const dec = (String(step).split(".")[1] || "").length;
+          num = Number(num.toFixed(dec));
+          if (max !== null && num > max) num = max - ((max - base) % step);
+        }
+      }
+      return String(num);
+    }
+
+    // --- date / month / time 系: min・max でクランプ ---
+    if (["date", "month", "time", "datetime-local", "week"].includes(t)) {
+      const min = el.min, max = el.max;
+      if (min && v < min) return min;
+      if (max && v > max) return max;
+      return v;
+    }
+
+    // --- maxlength / minlength ---
+    const maxLen = el.maxLength > 0 ? el.maxLength : null;
+    const minLen = el.minLength > 0 ? el.minLength : null;
+    if (maxLen && v.length > maxLen) v = v.slice(0, maxLen);
+    if (minLen && v.length < minLen) {
+      // 足りない分は末尾に安全な文字を補う
+      const filler = /^\d+$/.test(v) ? "0123456789" : "あいうえおabcde12345";
+      while (v.length < minLen) v += filler[v.length % filler.length];
+      if (maxLen && v.length > maxLen) v = v.slice(0, maxLen);
+    }
+
+    // --- pattern 適合(最大3回まで生成調整を試行) ---
+    if (!matchesPattern(el, v)) {
+      const candidate = valueForPattern(el.getAttribute("pattern") || "");
+      if (candidate !== null) {
+        let c = candidate;
+        if (maxLen && c.length > maxLen) c = c.slice(0, maxLen);
+        if (minLen && c.length < minLen) {
+          while (c.length < minLen) c += "0";
+          if (maxLen && c.length > maxLen) c = c.slice(0, maxLen);
+        }
+        if (matchesPattern(el, c)) v = c;
+      }
+    }
+    return v;
+  }
+
   // ---------- メイン: フィールドに合う値を生成 ----------
   function generate(el) {
     if (!el || el.disabled || el.readOnly) return null;
@@ -182,19 +307,21 @@
     }
 
     const ctx = fieldContext(el);
+    // 生成値を制約に適合させて返す
+    const finish = (value) => ({ kind: "value", value: adjust(el, value) });
     // autocomplete属性を優先解釈
     const ac = (el.autocomplete || "").toLowerCase();
     if (ac && ac !== "on" && ac !== "off") {
       for (const [re, fn] of AUTOCOMPLETE_MAP) {
-        if (re.test(ac)) return { kind: "value", value: fn() };
+        if (re.test(ac)) return finish(fn());
       }
     }
     // キーワードルール
     for (const [re, fn] of RULES) {
-      if (re.test(ctx)) return { kind: "value", value: fn(ctx) };
+      if (re.test(ctx)) return finish(fn(ctx));
     }
     // 型フォールバック
-    return { kind: "value", value: byType(el) };
+    return finish(byType(el));
   }
 
   window.UrlAutofillSamples = { generate };
